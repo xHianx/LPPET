@@ -9,7 +9,7 @@ from pyfcm import FCMNotification
 app = Flask(__name__)
 CORS(app)
 
-fcm = FCMNotification(api_key="rGdRoOXAB2s_uGdfEjzZg65Y1FcjCU9eC-ws16EQK8E")
+fcm = FCMNotification("rGdRoOXAB2s_uGdfEjzZg65Y1FcjCU9eC-ws16EQK8E", project_id="lppet-91af5")
 
 def obtener_conexion():
     try:
@@ -45,28 +45,12 @@ def crear_fundacion():
     except Exception as e:
         return jsonify({"msg": "Error al registrar fundación", "error": str(e)}), 500
     
-@app.route('/crearFundacion', methods=['POST'])
-def crear_fundacion():
-    db_mongo = obtener_conexion_mongo()
-    data = request.json
-    try:
-        nueva_fundacion = {
-            "nombre": data.get("nombre"),
-            "ubicacion": data.get("ubicacion"),
-            "descripcion": data.get("descripcion"),
-            "contacto": data.get("contacto"),
-            "fecha_creacion": datetime.now()
-        }
-        db_mongo.fundaciones.insert_one(nueva_fundacion)
-        return jsonify({"msg": "Fundación registrada exitosamente"}), 201
-    except Exception as e:
-        return jsonify({"msg": "Error al registrar fundación", "error": str(e)}), 500
 
 @app.route('/fundaciones', methods=['GET'])
 def listar_fundaciones():
     db_mongo = obtener_conexion_mongo()
     try:
-        fundaciones = list(db_mongo.fundaciones.find({}, {"_id": 0}))  # Excluir el ID de MongoDB
+        fundaciones = list(db_mongo.fundaciones.find({}, {"_id": 0})) 
         return jsonify({"fundaciones": fundaciones}), 200
     except Exception as e:
         return jsonify({"msg": "Error al obtener fundaciones", "error": str(e)}), 500
