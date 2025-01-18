@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import mysql.connector
-from pymongo import MongoClient
 from datetime import datetime
 import re
 from pyfcm import FCMNotification
@@ -14,9 +13,9 @@ fcm = FCMNotification("rGdRoOXAB2s_uGdfEjzZg65Y1FcjCU9eC-ws16EQK8E", project_id=
 def obtener_conexion():
     try:
         conexion = mysql.connector.connect(
-            host="localhost",
+            host="127.0.0.1",
             user="root",
-            password="root",
+            password="1234",
             database="petmatch"
         )
         return conexion
@@ -24,60 +23,82 @@ def obtener_conexion():
         print(f"Error en la conexión: {err}")
         return None
 
-def obtener_conexion_mongo():
-    client = MongoClient("mongodb://localhost:27017/")
-    return client["petmatch"]
-
 @app.route('/crearFundacion', methods=['POST'])
 def crear_fundacion():
-    db_mongo = obtener_conexion_mongo()
+    db = obtener_conexion()
     data = request.json
     try:
-        nueva_fundacion = {
-            "nombre": data.get("nombre"),
-            "ubicacion": data.get("ubicacion"),
-            "descripcion": data.get("descripcion"),
-            "contacto": data.get("contacto"),
-            "fecha_creacion": datetime.now()
-        }
-        db_mongo.fundaciones.insert_one(nueva_fundacion)
+        nueva_fundacion = (
+            data.get("nombre"),
+            data.get("ubicacion"),
+            data.get("descripcion"),
+            data.get("contacto"),
+        )
+        query = """
+            INSERT INTO Fundaciones (nombre, ubicacion, descripcion, contacto)
+            VALUES (%s, %s, %s, %s)
+        """
+        with db.cursor() as cursor:
+            cursor.execute(query, nueva_fundacion)
+            db.commit()
         return jsonify({"msg": "Fundación registrada exitosamente"}), 201
     except Exception as e:
         return jsonify({"msg": "Error al registrar fundación", "error": str(e)}), 500
-    
+    finally:
+        db.close()
 
 @app.route('/fundaciones', methods=['GET'])
 def listar_fundaciones():
-    db_mongo = obtener_conexion_mongo()
+    db = obtener_conexion()
     try:
-        fundaciones = list(db_mongo.fundaciones.find({}, {"_id": 0})) 
+        query = "SELECT id, nombre, ubicacion, descripcion, contacto, fecha_creacion FROM Fundaciones"
+        with db.cursor(dictionary=True) as cursor:
+            cursor.execute(query)
+            fundaciones = cursor.fetchall()
         return jsonify({"fundaciones": fundaciones}), 200
     except Exception as e:
         return jsonify({"msg": "Error al obtener fundaciones", "error": str(e)}), 500
+    finally:
+        db.close()
+
 @app.route('/actualizarFundacion/<string:nombre>', methods=['PUT'])
 def actualizar_fundacion(nombre):
-    db_mongo = obtener_conexion_mongo()
+    db = obtener_conexion()
     data = request.json
     try:
-        actualizacion = {
-            "ubicacion": data.get("ubicacion"),
-            "descripcion": data.get("descripcion"),
-            "contacto": data.get("contacto")
-        }
-        db_mongo.fundaciones.update_one({"nombre": nombre}, {"$set": actualizacion})
+        actualizacion = (
+            data.get("ubicacion"),
+            data.get("descripcion"),
+            data.get("contacto"),
+            nombre,
+        )
+        query = """
+            UPDATE Fundaciones
+            SET ubicacion = %s, descripcion = %s, contacto = %s
+            WHERE nombre = %s
+        """
+        with db.cursor() as cursor:
+            cursor.execute(query, actualizacion)
+            db.commit()
         return jsonify({"msg": "Fundación actualizada exitosamente"}), 200
     except Exception as e:
         return jsonify({"msg": "Error al actualizar fundación", "error": str(e)}), 500
+    finally:
+        db.close()
 
 @app.route('/eliminarFundacion/<string:nombre>', methods=['DELETE'])
 def eliminar_fundacion(nombre):
-    db_mongo = obtener_conexion_mongo()
+    db = obtener_conexion()
     try:
-        db_mongo.fundaciones.delete_one({"nombre": nombre})
+        query = "DELETE FROM Fundaciones WHERE nombre = %s"
+        with db.cursor() as cursor:
+            cursor.execute(query, (nombre,))
+            db.commit()
         return jsonify({"msg": "Fundación eliminada exitosamente"}), 200
     except Exception as e:
         return jsonify({"msg": "Error al eliminar fundación", "error": str(e)}), 500
-
+    finally:
+        db.close()
 
 @app.route('/estructura', methods=['GET'])
 def estructura():
@@ -141,8 +162,9 @@ def nuevo_usuario():
     email = data.get('email')
     password = data.get('password')
 
-    if not email or not re.match(r"[^@]+@[^@]+\\.[^@]+", email):
+    if not email or not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
         return jsonify({"msg": "Formato de email inválido"}), 400
+
     if not password or len(password) < 8:
         return jsonify({"msg": "La contraseña debe tener al menos 8 caracteres"}), 400
 
@@ -278,6 +300,7 @@ def consultar_logs():
         return jsonify({"msg": "Error al consultar logs", "error": str(e)}), 500
     finally:
         db.close()
+
 @app.route('/enviarPush', methods=['POST'])
 def enviar_push():
     data = request.json
@@ -286,8 +309,7 @@ def enviar_push():
     mensaje = data.get('mensaje')  
 
     try:
-        
-        result = fcm.notify_single_device(
+        result = fcm.notify_single_recipient(
             registration_id=token,
             message_title=titulo,
             message_body=mensaje
@@ -298,6 +320,4 @@ def enviar_push():
 
 
 if __name__ == '__main__':
-    app = Flask(__name__)
-    CORS(app)
     app.run(host='0.0.0.0', port=5000, debug=True)
