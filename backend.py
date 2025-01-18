@@ -1,4 +1,113 @@
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+import mysql.connector
+from pymongo import MongoClient
+from datetime import datetime
 import re
+from pyfcm import FCMNotification
+
+app = Flask(__name__)
+CORS(app)
+
+fcm = FCMNotification(api_key="rGdRoOXAB2s_uGdfEjzZg65Y1FcjCU9eC-ws16EQK8E")
+
+def obtener_conexion():
+    try:
+        conexion = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="root",
+            database="petmatch"
+        )
+        return conexion
+    except mysql.connector.Error as err:
+        print(f"Error en la conexión: {err}")
+        return None
+
+def obtener_conexion_mongo():
+    client = MongoClient("mongodb://localhost:27017/")
+    return client["petmatch"]
+
+@app.route('/crearFundacion', methods=['POST'])
+def crear_fundacion():
+    db_mongo = obtener_conexion_mongo()
+    data = request.json
+    try:
+        nueva_fundacion = {
+            "nombre": data.get("nombre"),
+            "ubicacion": data.get("ubicacion"),
+            "descripcion": data.get("descripcion"),
+            "contacto": data.get("contacto"),
+            "fecha_creacion": datetime.now()
+        }
+        db_mongo.fundaciones.insert_one(nueva_fundacion)
+        return jsonify({"msg": "Fundación registrada exitosamente"}), 201
+    except Exception as e:
+        return jsonify({"msg": "Error al registrar fundación", "error": str(e)}), 500
+    
+@app.route('/crearFundacion', methods=['POST'])
+def crear_fundacion():
+    db_mongo = obtener_conexion_mongo()
+    data = request.json
+    try:
+        nueva_fundacion = {
+            "nombre": data.get("nombre"),
+            "ubicacion": data.get("ubicacion"),
+            "descripcion": data.get("descripcion"),
+            "contacto": data.get("contacto"),
+            "fecha_creacion": datetime.now()
+        }
+        db_mongo.fundaciones.insert_one(nueva_fundacion)
+        return jsonify({"msg": "Fundación registrada exitosamente"}), 201
+    except Exception as e:
+        return jsonify({"msg": "Error al registrar fundación", "error": str(e)}), 500
+
+@app.route('/fundaciones', methods=['GET'])
+def listar_fundaciones():
+    db_mongo = obtener_conexion_mongo()
+    try:
+        fundaciones = list(db_mongo.fundaciones.find({}, {"_id": 0}))  # Excluir el ID de MongoDB
+        return jsonify({"fundaciones": fundaciones}), 200
+    except Exception as e:
+        return jsonify({"msg": "Error al obtener fundaciones", "error": str(e)}), 500
+@app.route('/actualizarFundacion/<string:nombre>', methods=['PUT'])
+def actualizar_fundacion(nombre):
+    db_mongo = obtener_conexion_mongo()
+    data = request.json
+    try:
+        actualizacion = {
+            "ubicacion": data.get("ubicacion"),
+            "descripcion": data.get("descripcion"),
+            "contacto": data.get("contacto")
+        }
+        db_mongo.fundaciones.update_one({"nombre": nombre}, {"$set": actualizacion})
+        return jsonify({"msg": "Fundación actualizada exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"msg": "Error al actualizar fundación", "error": str(e)}), 500
+
+@app.route('/eliminarFundacion/<string:nombre>', methods=['DELETE'])
+def eliminar_fundacion(nombre):
+    db_mongo = obtener_conexion_mongo()
+    try:
+        db_mongo.fundaciones.delete_one({"nombre": nombre})
+        return jsonify({"msg": "Fundación eliminada exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"msg": "Error al eliminar fundación", "error": str(e)}), 500
+
+
+@app.route('/estructura', methods=['GET'])
+def estructura():
+    secciones = [
+        {"ruta": "/inicio", "descripcion": "Datos principales para la pantalla de inicio"},
+        {"ruta": "/animales", "descripcion": "Explorar animales disponibles"},
+        {"ruta": "/buscar", "descripcion": "Búsqueda avanzada de animales"},
+        {"ruta": "/nuevoUsuario", "descripcion": "Registrar un nuevo usuario"},
+        {"ruta": "/iniciarSesion", "descripcion": "Iniciar sesión de usuario"},
+        {"ruta": "/solicitudes", "descripcion": "Registrar solicitudes de adopción"},
+        {"ruta": "/notificaciones", "descripcion": "Registrar notificaciones para los usuarios"},
+        {"ruta": "/simulacionDonaciones", "descripcion": "Simular donaciones mensuales"},
+    ]
+    return jsonify({"secciones": secciones}), 200
 
 @app.route('/inicio', methods=['GET'])
 def inicio():
@@ -48,7 +157,7 @@ def nuevo_usuario():
     email = data.get('email')
     password = data.get('password')
 
-    if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+    if not email or not re.match(r"[^@]+@[^@]+\\.[^@]+", email):
         return jsonify({"msg": "Formato de email inválido"}), 400
     if not password or len(password) < 8:
         return jsonify({"msg": "La contraseña debe tener al menos 8 caracteres"}), 400
@@ -65,29 +174,11 @@ def nuevo_usuario():
     finally:
         db.close()
 
-def obtener_conexion():
-    try:
-        conexion = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="root",
-            database="petmatch"
-        )
-        return conexion
-    except mysql.connector.Error as err:
-        print(f"Error en la conexión: {err}")
-        return None
-
-failed_attempts = {}
-
 @app.route('/iniciarSesion', methods=['POST'])
 def iniciar_sesion():
     data = request.json
     email = data.get('email')
     password = data.get('password')
-
-    if failed_attempts.get(email, 0) >= 3:
-        return jsonify({"msg": "Cuenta bloqueada temporalmente"}), 403
 
     db = obtener_conexion()
     try:
@@ -96,10 +187,8 @@ def iniciar_sesion():
             usuario = cursor.fetchone()
 
             if usuario and usuario['contrasena'] == password:
-                failed_attempts[email] = 0
                 return jsonify({"msg": "Inicio de sesión exitoso", "usuario": usuario}), 200
 
-        failed_attempts[email] = failed_attempts.get(email, 0) + 1
         return jsonify({"msg": "Credenciales inválidas"}), 401
     except Exception as e:
         return jsonify({"msg": "Error al iniciar sesión", "error": str(e)}), 500
@@ -127,7 +216,6 @@ def solicitudes():
     finally:
         db.close()
 
-
 @app.route('/buscar', methods=['GET'])
 def buscar():
     especie = request.args.get('especie')
@@ -153,10 +241,9 @@ def buscar():
             resultados = cursor.fetchall()
         return jsonify({"resultados": resultados}), 200
     except Exception as e:
-        return jsonify({"msg": "Error al buscar", "error": str(e)}), 500
+        return jsonify({"msg": "Error en la búsqueda", "error": str(e)}), 500
     finally:
         db.close()
-
 
 @app.route('/notificaciones', methods=['POST'])
 def notificaciones():
@@ -179,7 +266,6 @@ def notificaciones():
     finally:
         db.close()
 
-
 @app.route('/simulacionDonaciones', methods=['POST'])
 def simulacion_donaciones():
     data = request.json
@@ -196,16 +282,38 @@ def simulacion_donaciones():
 
     return jsonify({"simulaciones": simulaciones}), 200
 
-
-def registrar_log(tipo_evento, descripcion):
+@app.route('/logs', methods=['GET'])
+def consultar_logs():
     db = obtener_conexion()
     try:
-        with db.cursor() as cursor:
-            cursor.execute("""
-                INSERT INTO Logs (tipo_evento, descripcion, fecha) VALUES (%s, %s, NOW())
-            """, (tipo_evento, descripcion))
-            db.commit()
+        with db.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT * FROM Logs")
+            logs = cursor.fetchall()
+        return jsonify({"logs": logs}), 200
     except Exception as e:
-        print(f"Error al registrar log: {e}")
+        return jsonify({"msg": "Error al consultar logs", "error": str(e)}), 500
     finally:
         db.close()
+@app.route('/enviarPush', methods=['POST'])
+def enviar_push():
+    data = request.json
+    token = data.get('token')  
+    titulo = data.get('titulo')  
+    mensaje = data.get('mensaje')  
+
+    try:
+        
+        result = fcm.notify_single_device(
+            registration_id=token,
+            message_title=titulo,
+            message_body=mensaje
+        )
+        return jsonify({"msg": "Notificación enviada", "result": result}), 200
+    except Exception as e:
+        return jsonify({"msg": "Error al enviar notificación", "error": str(e)}), 500
+
+
+if __name__ == '__main__':
+    app = Flask(__name__)
+    CORS(app)
+    app.run(host='0.0.0.0', port=5000, debug=True)
