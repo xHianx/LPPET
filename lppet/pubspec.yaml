@@ -19,3 +19,10 @@ flutter:
   uses-material-design: true
   assets:
     - assets/perrito.jpg
+    - assets/perfil.png
+    - assets/home/usuario.png
+    - assets/home/perros.png
+    - assets/home/gato_saludando.png
+    - assets/home/adopcion.png
+    - assets/home/donacion.png
+    - assets/home/solicitud.png
