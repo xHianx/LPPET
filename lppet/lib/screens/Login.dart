@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:lppet/components/MyButton.dart';
 import 'package:lppet/components/MyInputField.dart';
 import 'package:lppet/constants.dart';
-import 'package:lppet/screens/create_account.dart';
-import 'package:lppet/screens/main_window.dart';
+// import 'package:lppet/screens/create_account.dart';
+// import 'package:lppet/screens/main_window.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -16,10 +16,10 @@ class LoginScreenState extends State<LoginScreen> {
 
   Future<void> login(String email, String password) async {
     if (email.isNotEmpty && password.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => MainWindow()),
-      );
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => MainWindow()),
+      // );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('¡Inicio de sesión exitoso!')),
       );
@@ -99,11 +99,11 @@ class LoginScreenState extends State<LoginScreen> {
                         MyButton(
                           label: "Registrarse",
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => CreateAccount()),
-                            );
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //       builder: (context) => CreateAccount()),
+                            // );
                           },
                           buttonColor: Colors.grey[400]!,
                           labelColor: Colors.black,
