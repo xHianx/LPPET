@@ -183,7 +183,7 @@ class CreateAcountState extends State<Signup> {
             ),
           ),
         ),
-      ),
-    );
-  }
+      ),
+    );
+  }
 }

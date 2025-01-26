@@ -3,6 +3,7 @@ import 'package:lppet/components/MyButton.dart';
 import 'package:lppet/components/MyInputField.dart';
 import 'package:lppet/constants.dart';
 import 'package:lppet/screens/home.dart';
+import 'package:lppet/screens/signup.dart';
 // import 'package:lppet/screens/create_account.dart';
 // import 'package:lppet/screens/main_window.dart';
 
@@ -109,11 +110,11 @@ class LoginScreenState extends State<LoginScreen> {
                         MyButton(
                           label: "Registrarse",
                           onTap: () {
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //       builder: (context) => CreateAccount()),
-                            // );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const Signup()),
+                            );
                           },
                           buttonColor: Colors.grey[400]!,
                           labelColor: Colors.black,
