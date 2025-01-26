@@ -51,13 +51,21 @@ class LoginScreenState extends State<LoginScreen> {
                     fontFamily: 'Montserrat',
                     fontWeight: FontWeight.bold,
                   ),
+                  
+                ),
+                const SizedBox(height: 20),
+                Image.asset(
+                  "assets/perrito.jpg",
+                  width: 180,
+                  height: 180,
+                  fit: BoxFit.cover,
                 ),
                 SizedBox(height: screenHeight * 0.02),
                 Container(
                   height: screenHeight * 0.8,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.only(
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(50),
                       topRight: Radius.circular(50),
                     ),
@@ -65,7 +73,7 @@ class LoginScreenState extends State<LoginScreen> {
                       BoxShadow(
                         color: Colors.black.withOpacity(0.1),
                         blurRadius: 8,
-                        offset: Offset(0, -3),
+                        offset: const Offset(0, -3),
                       ),
                     ],
                   ),
@@ -109,13 +117,6 @@ class LoginScreenState extends State<LoginScreen> {
                           labelColor: Colors.black,
                           cornerRadius: 20,
                           shadowIntensity: 4.0,
-                        ),
-                        SizedBox(height: 20),
-                        Image.asset(
-                          "assets/perrito.jpg",
-                          width: 180,
-                          height: 180,
-                          fit: BoxFit.cover,
                         ),
                       ],
                     ),
