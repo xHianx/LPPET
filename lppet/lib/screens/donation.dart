@@ -3,7 +3,9 @@ import 'package:lppet/components/MyButton.dart';
 import 'package:lppet/components/MyInputField.dart';
 import 'package:lppet/constants.dart';
 import 'package:lppet/screens/donation_aproved.dart';
+import 'package:lppet/screens/donation_history.dart';
 import 'package:lppet/screens/home.dart';
+import 'package:dio/dio.dart';
 
 class Donation extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
@@ -13,11 +15,46 @@ class Donation extends StatelessWidget {
   final TextEditingController montoController = TextEditingController();
 
   Donation({super.key});
-  void _makeDonation(BuildContext context) {
-    // logic of donation'
+  
+  Future<void> _makeDonation(BuildContext context) async {
+    // logic of donation
+    Dio dio = Dio();
+    final String url = "http://127.0.0.1:5000/postDonacion";
+    int _usuarioId = 1;
+    String _monto = montoController.text;
+
+    final Map<String, dynamic> donationData = {
+      'usuario_id': _usuarioId,
+      'monto': _monto,
+    };
+
+    try {
+      Response response = await dio.post(
+        url,
+        data: donationData,
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
+
+      if (response.statusCode == 201) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const DonationAproved()),
+        );
+      } else {
+        // Manejar errores
+        print("Error: ${response.statusMessage}");
+      }
+    } catch (e) {
+      // Manejo de excepciones
+      print("Error al realizar la donación: $e");
+    }
+  }
+
+  void _seeDonations(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => DonationAproved()),
+      MaterialPageRoute(builder: (context) => const DonationHistory()),
     );
   }
 
@@ -43,6 +80,14 @@ class Donation extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              MyButton(
+                label: "Historial de Donaciones",
+                onTap: () => _seeDonations(context),
+                buttonColor: Colors.grey,
+                labelColor: Colors.white,
+                cornerRadius: 10.0,
+                shadowIntensity: 5.0,
+              ),
               const SizedBox(height: 20),
               Center(
                 child: Text(

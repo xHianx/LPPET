@@ -15,7 +15,7 @@ def obtener_conexion():
         conexion = mysql.connector.connect(
             host="127.0.0.1",
             user="root",
-            password="1234",
+            password="root",
             database="petmatch"
         )
         return conexion
@@ -287,6 +287,64 @@ def simulacion_donaciones():
         })
 
     return jsonify({"simulaciones": simulaciones}), 200
+
+@app.route('/postDonacion', methods=['POST'])
+def post_donacion():
+    try:
+        db = obtener_conexion()
+        data = request.json
+        usuario_id = data.get('usuario_id')
+        monto = data.get('monto')
+
+        if not usuario_id or not monto:
+            return jsonify({"error": "usuario_id y monto son obligatorios"}), 400
+
+        cursor = db.cursor()
+
+        # Insertar la donación en la base de datos
+        query = "INSERT INTO Donaciones (usuario_id, monto) VALUES (%s, %s)"
+        cursor.execute(query, (usuario_id, monto))
+        db.commit()
+        donacion_id = cursor.lastrowid  # Obtener el ID del registro insertado
+        cursor.close()
+
+        return jsonify({"mensaje": "Donación registrada exitosamente", "donacion_id": donacion_id}), 201
+
+    except mysql.connector.Error as err:
+        return jsonify({"error": f"Error en la base de datos: {str(err)}"}), 500
+
+@app.route('/getDonaciones', methods=['GET'])
+def get_donaciones():
+    try:
+        db = obtener_conexion()
+        cursor = db.cursor(dictionary=True)  # Retorna los resultados como diccionarios
+
+        query = "SELECT id, usuario_id, monto, fecha_donacion FROM Donaciones"
+        cursor.execute(query)
+        donaciones = cursor.fetchall()  # Obtener todas las donaciones
+
+        cursor.close()
+        return jsonify({"donaciones": donaciones}), 200
+
+    except mysql.connector.Error as err:
+        return jsonify({"error": f"Error en la base de datos: {str(err)}"}), 500
+
+@app.route('/getDonacionesUsuario/<int:usuario_id>', methods=['GET'])
+def get_donaciones_usuario(usuario_id):
+    try:
+        db = obtener_conexion()
+        cursor = db.cursor(dictionary=True)  # Retorna los resultados como diccionarios
+
+        query = "SELECT id, usuario_id, monto, fecha_donacion FROM Donaciones WHERE usuario_id = %s"
+        cursor.execute(query, (usuario_id,))
+        donaciones = cursor.fetchall()  # Obtener todas las donaciones del usuario
+
+        cursor.close()
+        return jsonify({"usuario_id": usuario_id, "donaciones": donaciones}), 200
+
+    except mysql.connector.Error as err:
+        return jsonify({"error": f"Error en la base de datos: {str(err)}"}), 500
+
 
 @app.route('/logs', methods=['GET'])
 def consultar_logs():
