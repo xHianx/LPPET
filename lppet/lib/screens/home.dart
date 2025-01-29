@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lppet/components/ButtonWithImage.dart';
 import 'package:lppet/constants.dart';
+import 'package:lppet/screens/donation.dart';
 import 'package:lppet/screens/login.dart';
 
 class Home extends StatelessWidget {
@@ -54,7 +55,10 @@ class Home extends StatelessWidget {
           imagePath: "assets/home/donacion.png",
           label: 'Donar',
           onPressed: () {
-            // Navegar a donar
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => Donation()),
+            );
           },
         ),
         ButtonWithImage(
