@@ -350,6 +350,8 @@ def post_donacion():
 
         if not usuario_id or not monto:
             return jsonify({"error": "usuario_id y monto son obligatorios"}), 400
+        if not re.match(r"^\d+(\.\d{2})$", monto):
+            return jsonify({"error": "El monto debe ser un número con exactamente dos decimales."}), 400
 
         cursor = db.cursor()
 
