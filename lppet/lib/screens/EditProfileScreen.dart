@@ -12,12 +12,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool isLoading = false;
   String errorMessage = '';
 
-  @override
-  void initState() {
-    super.initState();
-    // Si deseas precargar los datos del usuario, puedes hacer una solicitud GET aquí.
-  }
-
   Future<void> updateProfile() async {
     String email = _emailController.text;
     String password = _passwordController.text;
@@ -35,7 +29,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       var response = await Dio().put(
-        'http://127.0.0.1:5000/actualizarUsuario', // Reemplazar con la URL real
+        'http://127.0.0.1:5000/actualizarUsuario',
         data: {
           'email': email,
           'password': password,

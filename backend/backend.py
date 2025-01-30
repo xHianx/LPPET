@@ -113,7 +113,23 @@ def estructura():
         {"ruta": "/simulacionDonaciones", "descripcion": "Simular donaciones mensuales"},
     ]
     return jsonify({"secciones": secciones}), 200
+@app.route('/actualizarUsuario', methods=['PUT'])
+def update_profile():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
 
+    db = obtener_conexion()
+    try:
+        cursor = db.cursor()
+        cursor.execute("UPDATE Usuario SET email = %s, contrasena = %s WHERE email = %s", (email, password, email))
+        db.commit()
+
+        return jsonify({"msg": "Perfil actualizado con éxito"}), 200
+    except Exception as e:
+        return jsonify({"msg": "Error al actualizar perfil", "error": str(e)}), 500
+    finally:
+        db.close()
 @app.route('/inicio', methods=['GET'])
 def inicio():
     db = obtener_conexion()
