@@ -16,7 +16,7 @@ class _DonationHistoryState extends State<DonationHistory> {
   @override
   void initState() {
     super.initState();
-    _futureDonaciones = fetchDonaciones(1);
+    _futureDonaciones = fetchDonaciones(usuario_loggeado!.id);
   }
 
   Future<List<dynamic>> fetchDonaciones(int usuarioId) async {

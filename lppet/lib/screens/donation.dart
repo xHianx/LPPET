@@ -20,7 +20,7 @@ class Donation extends StatelessWidget {
     // logic of donation
     Dio dio = Dio();
     final String url = "http://127.0.0.1:5000/postDonacion";
-    int _usuarioId = 1;
+    int _usuarioId = usuario_loggeado!.id;
     String _monto = montoController.text;
 
     final Map<String, dynamic> donationData = {
