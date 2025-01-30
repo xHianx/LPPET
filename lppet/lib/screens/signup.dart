@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:lppet/components/MyButton.dart';
 import 'package:lppet/components/MyInputField.dart';
 import 'package:lppet/constants.dart';
 import 'package:lppet/screens/home.dart';
+import 'package:dio/dio.dart';
 
 class Signup extends StatefulWidget {
   const Signup({super.key});
@@ -22,6 +25,17 @@ class CreateAcountState extends State<Signup> {
     final TextEditingController apellido = TextEditingController();
     final TextEditingController ocupacion = TextEditingController();
     final TextEditingController password = TextEditingController();
+
+    @override
+    void dispose() {
+      email.dispose();
+      userName.dispose();
+      nombre.dispose();
+      apellido.dispose();
+      ocupacion.dispose();
+      password.dispose();
+      super.dispose();
+    }
 
     void showError(String errorMessage) {
       showDialog(
@@ -64,9 +78,30 @@ class CreateAcountState extends State<Signup> {
       );
     }
 
-    int createAccount() {
-        showModal("Cuenta creada con éxito");
-        return 200;
+    Future<int> createAccount() async {
+      try {
+        if (email.text.isEmpty || password.text.isEmpty) {
+          showError("El email y la contraseña no pueden estar vacíos.");
+          return 400;
+        }
+
+        final response = await Dio().post(
+          'http://127.0.0.1:5000/nuevoUsuario',
+          data: jsonEncode({"email": email.text.trim(), "password": password.text.trim()}),
+        );
+
+        if (response.statusCode == 201) {
+          showModal("Cuenta creada con éxito");
+          return 200;
+        } else {
+          showError("Error al crear la cuenta, ${response.statusCode}");
+          return 500;
+        }
+      } catch (e) {
+        print(e);
+        showError("No se pudo conectar con el servidor.");
+        return 400;
+      }
     }
 
     return Scaffold(
@@ -151,23 +186,24 @@ class CreateAcountState extends State<Signup> {
                                 MyButton(
                                   label: "     Registrarse    ",
                                   onTap: () async {
-                                    if (email.text == '' ||
-                                        userName.text == '' ||
-                                        nombre.text == '' ||
-                                        apellido.text == '' ||
-                                        ocupacion.text == '' ||
-                                        password.text == '') {
+                                    if (email.text.isEmpty ||
+                                        userName.text.isEmpty ||
+                                        nombre.text.isEmpty ||
+                                        apellido.text.isEmpty ||
+                                        ocupacion.text.isEmpty ||
+                                        password.text.isEmpty) {
                                       showError(
-                                        "Se deben llenar todos los campos."
-                                      );
+                                          "Se deben llenar todos los campos.");
                                     } else {
-                                      createAccount();
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const Home()
-                                        ),
-                                      );
+                                      int statusCode = await createAccount();
+                                      if (statusCode == 200) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const Home()),
+                                        );
+                                      }
                                     }
                                   },
                                 ),
