@@ -28,7 +28,7 @@ class Home extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Center(
               child: Text(
-                usuario_loggeado!,
+                usuario_loggeado!.email,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 8.0,

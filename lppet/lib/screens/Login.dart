@@ -1,13 +1,18 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:lppet/components/MyButton.dart';
 import 'package:lppet/components/MyInputField.dart';
 import 'package:lppet/constants.dart';
+import 'package:lppet/models/usuario.dart';
 import 'package:lppet/screens/home.dart';
 import 'package:lppet/screens/signup.dart';
 // import 'package:lppet/screens/create_account.dart';
 // import 'package:lppet/screens/main_window.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   LoginScreenState createState() => LoginScreenState();
 }
@@ -16,19 +21,38 @@ class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  Future<void> login(String email, String password) async {
-    if (email.isNotEmpty && password.isNotEmpty) {
-      usuario_loggeado = email;
-      Navigator.push(
+  Future<void> logIn(String email, String password) async {
+    final url = Uri.parse("http://127.0.0.1:5000/iniciarSesion");
+    final bodyPeticion = jsonEncode({
+      "email": email,
+      "password": password,
+    });
+    final respuesta = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json', // Define que el contenido es JSON
+      },
+      body: bodyPeticion,
+    );
+    if (respuesta.statusCode == 200) {
+      //solicitud exitosa
+      final respuestaJson = await jsonDecode(respuesta.body);
+      usuario_loggeado = Usuario.fromJson(respuestaJson['usuario']);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('LogIn exitoso')),
+      );
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const Home()),
       );
+      //navego a la ventana por que el acceso fue exitoso
+    } else if (respuesta.statusCode == 401) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('¡Inicio de sesión exitoso!')),
+        const SnackBar(content: Text('Credenciales incorrectas')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: Verifica tus credenciales')),
+        const SnackBar(content: Text('Error del servidor')),
       );
     }
   }
@@ -98,7 +122,7 @@ class LoginScreenState extends State<LoginScreen> {
                         MyButton(
                           label: "Iniciar Sesión",
                           onTap: () async {
-                            await login(_emailController.text,
+                            await logIn(_emailController.text,
                                 _passwordController.text);
                           },
                           buttonColor: Colors.teal,

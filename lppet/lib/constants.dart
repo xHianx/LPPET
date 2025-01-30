@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lppet/models/usuario.dart';
 
-String? usuario_loggeado;
+Usuario? usuario_loggeado;
 Color principalColor = const Color.fromARGB(235, 204, 210, 186);
 Color secundaryColor = const Color.fromARGB(235, 134, 170, 3);
 Color textColor = Colors.teal;
