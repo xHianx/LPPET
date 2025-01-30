@@ -41,6 +41,7 @@ class _DonationHistoryState extends State<DonationHistory> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
+          title: Text("Donaciones de ${usuario_loggeado!.email.split('@')[0]}"),
           leading: IconButton(
             icon: Icon(Icons.close, color: textColor),
             onPressed: () {
