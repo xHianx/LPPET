@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:lppet/components/MyButton.dart';
 import 'package:lppet/components/MyInputField.dart';
 import 'package:lppet/constants.dart';
+import 'package:lppet/models/usuario.dart';
 import 'package:lppet/screens/home.dart';
 import 'package:dio/dio.dart';
 
@@ -87,18 +88,25 @@ class CreateAcountState extends State<Signup> {
 
         final response = await Dio().post(
           'http://127.0.0.1:5000/nuevoUsuario',
-          data: jsonEncode({"email": email.text.trim(), "password": password.text.trim()}),
+          data: {"email": email.text.trim(), "password": password.text.trim()},
         );
 
-        if (response.statusCode == 201) {
-          showModal("Cuenta creada con éxito");
-          return 200;
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          try {
+            final respuestaJson = response.data;
+            usuario_loggeado = Usuario.fromJson(respuestaJson['usuario']);
+            showModal("Cuenta creada con éxito");
+            return response.statusCode!;
+          } catch (e) {
+            showError("Error al procesar la respuesta del servidor.");
+            return 500;
+          }
         } else {
-          showError("Error al crear la cuenta, ${response.statusCode}");
-          return 500;
+          showError("Error al crear la cuenta (${response.statusCode}).");
+          return response.statusCode!;
         }
       } catch (e) {
-        print(e);
+        print("Error: $e");
         showError("No se pudo conectar con el servidor.");
         return 400;
       }
@@ -196,8 +204,8 @@ class CreateAcountState extends State<Signup> {
                                           "Se deben llenar todos los campos.");
                                     } else {
                                       int statusCode = await createAccount();
-                                      if (statusCode == 200) {
-                                        Navigator.push(
+                                      if (statusCode == 201) {
+                                        Navigator.pushReplacement(
                                           context,
                                           MaterialPageRoute(
                                               builder: (context) =>
