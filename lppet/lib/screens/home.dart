@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lppet/components/ButtonWithImage.dart';
 import 'package:lppet/constants.dart';
+import 'package:lppet/screens/adopcion.dart';
 import 'package:lppet/screens/donation.dart';
 import 'package:lppet/screens/login.dart';
 
@@ -48,7 +49,10 @@ class Home extends StatelessWidget {
           imagePath: "assets/home/adopcion.png",
           label: 'Adoptar',
           onPressed: () {
-            // Navegar a adoptar
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AnimalList()),
+            );
           },
         ),
         ButtonWithImage(
@@ -65,7 +69,10 @@ class Home extends StatelessWidget {
           imagePath: "assets/home/solicitud.png",
           label: 'Solicitudes',
           onPressed: () {
-            // Navegar a solicitudes
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AnimalList()),
+            );
           },
         ),
         ButtonWithImage(

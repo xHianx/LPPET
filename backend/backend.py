@@ -156,6 +156,42 @@ def animales():
     finally:
         db.close()
 
+@app.route('/crearAnimal', methods=['POST'])
+def crear_animal():
+    try:
+        data = request.json
+        nombre = data.get('nombre')
+        especie = data.get('especie')
+        estado_adopcion = data.get('estado_adopcion')
+        edad = data.get('edad')
+
+        # Validación de los datos
+        if not nombre or not especie or not estado_adopcion or not edad:
+            return jsonify({"error": "Faltan datos obligatorios"}), 400
+
+        # Conectar a la base de datos
+        db = obtener_conexion()
+        cursor = db.cursor()
+
+        # Insertar el nuevo animal en la base de datos
+        query = """
+            INSERT INTO Animal (nombre, especie, estado_adopcion, edad)
+            VALUES (%s, %s, %s, %s)
+        """
+        cursor.execute(query, (nombre, especie, estado_adopcion, edad))
+        db.commit()
+
+        # Cerrar conexión
+        cursor.close()
+        db.close()
+
+        return jsonify({"mensaje": "Animal creado correctamente"}), 201
+
+    except Error as e:
+        return jsonify({"error": f"Error en la base de datos: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
 @app.route('/nuevoUsuario', methods=['POST'])
 def nuevo_usuario():
     data = request.json
