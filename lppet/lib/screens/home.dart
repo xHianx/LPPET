@@ -4,6 +4,7 @@ import 'package:lppet/constants.dart';
 import 'package:lppet/screens/adopcion.dart';
 import 'package:lppet/screens/donation.dart';
 import 'package:lppet/screens/login.dart';
+import 'package:lppet/screens/editprofilescreen.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -41,7 +42,9 @@ class Home extends StatelessWidget {
           const CircleAvatar(
             backgroundImage: AssetImage("assets/perfil.png"),
           ),
-          const SizedBox(width: 10,)
+          const SizedBox(
+            width: 10,
+          )
         ],
       ),
       body: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -79,10 +82,16 @@ class Home extends StatelessWidget {
           imagePath: "assets/home/usuario.png",
           label: 'Perfil',
           onPressed: () {
-            // Navegar a perfil
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => EditProfileScreen()),
+            );
           },
         ),
-        Image.asset("assets/home/perros.png", height: 500,),
+        Image.asset(
+          "assets/home/perros.png",
+          height: 500,
+        ),
       ]),
     );
   }
@@ -121,4 +130,3 @@ class Home extends StatelessWidget {
     );
   }
 }
-
